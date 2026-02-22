@@ -1,0 +1,8 @@
+node_modules
+dist
+.DS_Store
+*.local
+.claude/
+
+# 根目录原始素材图片（已处理到 public/ships/）
+*-removebg-preview.png
