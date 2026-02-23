@@ -33,6 +33,12 @@ interface EnemyEntity {
   sinePhase:  number          // 初始相位
   displayW:   number
   displayH:   number
+  // Type 4 俯冲
+  diveTimer:  number          // 距下次俯冲的倒计时（秒）
+  isDiving:   boolean         // 当前是否在俯冲
+  diveDX:     number          // 俯冲方向 X（已归一化）
+  diveDY:     number          // 俯冲方向 Y（已归一化）
+  diveSpeed:  number          // 俯冲速度
 }
 
 interface BulletEntity {
@@ -389,6 +395,12 @@ export class GameEngine implements IGameEngine {
       sinePhase: Math.random() * Math.PI * 2,
       displayW: display.w,
       displayH: display.h,
+      // Type 4 俯冲初始化
+      diveTimer:  type === 4 ? 3.5 + Math.random() * 2 : 999,
+      isDiving:   false,
+      diveDX:     0,
+      diveDY:     1,
+      diveSpeed:  0,
     })
   }
 
@@ -396,12 +408,52 @@ export class GameEngine implements IGameEngine {
     let i = this.enemies.length
     while (i--) {
       const e = this.enemies[i]
-      // 纵向下落
-      e.y += e.vy * dt
-      // 正弦横向漂移
-      e.x = e.spawnX + Math.sin(this.elapsed * e.sineFreq + e.sinePhase) * e.sineAmp
 
-      // 精英舰反击
+      if (e.type === 4) {
+        // ── 精英护卫舰：俯冲逻辑 ──────────────────
+        e.diveTimer -= dt
+
+        if (e.isDiving) {
+          // 俯冲中：沿固定方向高速移动
+          e.x += e.diveDX * e.diveSpeed * dt
+          e.y += e.diveDY * e.diveSpeed * dt
+
+          // 俯冲结束：冲过玩家或飞出屏幕边缘
+          const pastPlayer  = e.y > this.py + 80
+          const offScreen   = e.y > DESIGN_HEIGHT + e.displayH ||
+                              e.x < -e.displayW || e.x > DESIGN_WIDTH + e.displayW
+          if (pastPlayer || offScreen) {
+            e.isDiving  = false
+            e.diveTimer = 4.0 + Math.random() * 2   // 下次俯冲冷却
+            // 以当前 X 为新漂移基准，避免瞬移
+            e.spawnX = Math.max(
+              e.displayW / 2 + 10,
+              Math.min(DESIGN_WIDTH - e.displayW / 2 - 10, e.x),
+            )
+          }
+        } else {
+          // 正常下落 + 正弦漂移
+          e.y += e.vy * dt
+          e.x  = e.spawnX + Math.sin(this.elapsed * e.sineFreq + e.sinePhase) * e.sineAmp
+
+          // 触发俯冲：计时结束且已进入屏幕上半区
+          if (e.diveTimer <= 0 && e.y > 0 && e.y < DESIGN_HEIGHT * 0.55) {
+            const dx   = this.px - e.x
+            const dy   = this.py - e.y
+            const dist = Math.sqrt(dx * dx + dy * dy) || 1
+            e.isDiving  = true
+            e.diveDX    = dx / dist
+            e.diveDY    = dy / dist
+            e.diveSpeed = 290
+          }
+        }
+      } else {
+        // ── 普通敌机：纵向下落 + 正弦漂移 ─────────
+        e.y += e.vy * dt
+        e.x  = e.spawnX + Math.sin(this.elapsed * e.sineFreq + e.sinePhase) * e.sineAmp
+      }
+
+      // 所有敌机：反击射击
       if (e.canShoot) {
         e.shootTimer -= dt
         if (e.shootTimer <= 0) {

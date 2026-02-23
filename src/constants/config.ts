@@ -66,17 +66,17 @@ export const SHIPS: ShipConfig[] = [
 
 // ─── 敌机配置（type 对应图片 5–8）────────────────
 export const ENEMY_CONFIGS: Record<number, EnemyConfig> = {
-  // 重型轰炸机：血厚移速慢，射速低
-  1: { type: 1, hp: 4, speed: 90,  score: 50, radius: 42,
+  // 重型轰炸机：血厚移速适中，射速低
+  1: { type: 1, hp: 6,  speed: 110, score: 50, radius: 42,
        canShoot: true, shootInterval: 0.88, spawnWeight: 1 },
   // 快速侦察机：一击即溃，在屏幕时间短，偶尔射击
-  2: { type: 2, hp: 1, speed: 200, score: 20, radius: 28,
+  2: { type: 2, hp: 1,  speed: 200, score: 20, radius: 28,
        canShoot: true, shootInterval: 0.75, spawnWeight: 4 },
   // 标准战机：均衡射速
-  3: { type: 3, hp: 2, speed: 130, score: 10, radius: 34,
+  3: { type: 3, hp: 3,  speed: 130, score: 10, radius: 34,
        canShoot: true, shootInterval: 0.63, spawnWeight: 5 },
-  // 精英护卫舰：最强，射速最快
-  4: { type: 4, hp: 6, speed: 70,  score: 80, radius: 46,
+  // 精英护卫舰：最强，射速最快，会俯冲玩家
+  4: { type: 4, hp: 10, speed: 70,  score: 80, radius: 46,
        canShoot: true, shootInterval: 0.5,  spawnWeight: 1 },
 }
 
